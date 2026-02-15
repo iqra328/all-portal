@@ -1,4 +1,4 @@
-/* VolunteerApp.css */
+/* VolunteerApp.css - Modified for Sidebar */
 * {
   margin: 0;
   padding: 0;
@@ -18,6 +18,7 @@
   --border-color: #e2e8f0;
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --sidebar-width: 250px; /* Added sidebar width variable */
 }
 
 html, body {
@@ -44,15 +45,93 @@ body {
   padding: 20px;
 }
 
-/* Main Container */
+/* Main Container - Modified for Sidebar */
 .volunteer-wrapper {
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
+  display: flex; /* Added flex display */
+  gap: 20px; /* Gap between sidebar and main content */
 }
 
+/* Sidebar Styles - Add these new styles */
+.sidebar {
+  width: var(--sidebar-width);
+  background: white;
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  padding: 1.5rem;
+  height: fit-content;
+  animation: slideLeft 0.5s ease;
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sidebar-header {
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.sidebar-header h3 {
+  color: var(--primary-green);
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-header p {
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-nav-item {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  color: var(--text-dark);
+  text-decoration: none;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sidebar-nav-item:hover {
+  background: var(--primary-light);
+  color: var(--primary-green);
+  transform: translateX(5px);
+}
+
+.sidebar-nav-item.active {
+  background: linear-gradient(135deg, var(--primary-green) 0%, #4f8c26 100%);
+  color: white;
+}
+
+.sidebar-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--border-color);
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+
+/* Main Content - Modified for Sidebar */
 .volunteer-container {
-  width: 100%;
+  flex: 1; /* Takes remaining width */
   background: white;
   border-radius: 20px;
   box-shadow: var(--shadow-lg);
@@ -71,6 +150,7 @@ body {
   }
 }
 
+/* Rest of your existing CSS remains the same */
 /* Header Section */
 .header-section {
   background: linear-gradient(135deg, var(--primary-green) 0%, #4f8c26 100%);
@@ -575,10 +655,15 @@ body {
   font-size: 0.95rem;
 }
 
-/* Responsive Design */
+/* Responsive Design - Modified for Sidebar */
 @media (max-width: 1024px) {
   .volunteer-wrapper {
+    flex-direction: column; /* Stack sidebar and content on smaller screens */
     padding: 0 1rem;
+  }
+
+  .sidebar {
+    width: 100%; /* Full width sidebar on mobile */
   }
 
   .form-row {
@@ -701,7 +786,8 @@ body {
   .admin-actions,
   .filters-section,
   .action-cell,
-  .footer-note {
+  .footer-note,
+  .sidebar { /* Added sidebar to print hide */
     display: none !important;
   }
 
@@ -715,10 +801,182 @@ body {
   }
 }
 
-/* Add this to your VolunteerApp.css */
+/* Hint Text */
 .hint {
   display: block;
   font-size: 0.8rem;
   color: var(--text-light);
   margin-top: 5px;
+}
+
+/* Add to your VolunteerApp.css */
+
+/* URL Input Container */
+.url-input-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.image-url-input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.image-url-input:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(102, 176, 50, 0.1);
+}
+
+.image-url-input:hover {
+  border-color: var(--primary-blue);
+}
+
+.image-examples {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 5px;
+}
+
+.image-examples a {
+  color: var(--primary-green);
+  text-decoration: none;
+  margin: 0 3px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.image-examples a:hover {
+  text-decoration: underline;
+  color: var(--primary-blue);
+}
+
+/* Event Badge */
+.event-badge {
+  background: rgba(102, 176, 50, 0.1);
+  color: var(--primary-green);
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Add First Volunteer Button */
+.add-first-btn {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: var(--primary-green);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-first-btn:hover {
+  background: var(--primary-blue);
+  transform: translateY(-2px);
+}
+
+/* Image Preview Improvements */
+.image-preview-container {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  border: 2px solid var(--border-color);
+  box-shadow: var(--shadow);
+  position: relative;
+}
+
+.image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e2e8f0, #cbd5e0);
+  color: var(--text-light);
+}
+
+.image-placeholder span {
+  font-size: 2.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.image-placeholder p {
+  font-size: 0.85rem;
+  color: var(--text-dark);
+}
+
+/* Volunteer Thumbnail in Table */
+.volunteer-image-cell {
+  width: 50px;
+  height: 50px;
+  position: relative;
+}
+
+.volunteer-thumbnail {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid var(--border-color);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.volunteer-thumbnail:hover {
+  transform: scale(3);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.volunteer-thumbnail-placeholder {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  box-shadow: var(--shadow);
+}
+
+/* Responsive Fixes */
+@media (max-width: 768px) {
+  .volunteer-thumbnail:hover {
+    transform: scale(2);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(2);
+    z-index: 1000;
+    box-shadow: 0 0 0 1000px rgba(0,0,0,0.5);
+  }
 }

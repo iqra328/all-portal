@@ -1,4 +1,4 @@
-/* InventoryApp.css - Professional Version */
+/* InventoryApp.css - Professional Version with Sidebar Space */
 :root {
   --green: #66B032;
   --blue: #0057A8;
@@ -13,16 +13,40 @@
   --found-color: #66B032;
   --notfound-color: #DC2626;
   --pending-color: #F59E0B;
+  --sidebar-width: 280px; /* Sidebar width variable */
 }
 
-/* Main Container */
+/* Main Container - Modified for Sidebar */
 .inventory-app {
-  margin-left: 280px;
+  margin-left: var(--sidebar-width); /* Space for fixed sidebar */
   padding: 25px;
   min-height: 100vh;
   background: var(--offwhite);
-  width: calc(100% - 280px);
+  width: calc(100% - var(--sidebar-width));
   box-sizing: border-box;
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+/* Sidebar Styles (if you want to add it separately) */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: white;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+  overflow-y: auto;
+  padding: 25px 0;
+  border-right: 1px solid var(--border-light);
+}
+
+/* Main Content Wrapper */
+.main-content {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Header */
@@ -78,7 +102,7 @@
   font-size: 26px;
 }
 
-/* Stats Cards */
+/* Stats Cards - Modified grid for better spacing */
 .inventory-stats {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -978,7 +1002,7 @@
   transform: translateY(-2px);
 }
 
-/* Responsive */
+/* Responsive - Modified for Sidebar */
 @media (max-width: 1400px) {
   .inventory-stats {
     grid-template-columns: repeat(3, 1fr);
@@ -986,6 +1010,10 @@
 }
 
 @media (max-width: 1200px) {
+  :root {
+    --sidebar-width: 0px; /* Hide sidebar on mobile */
+  }
+  
   .inventory-app {
     margin-left: 0;
     width: 100%;
@@ -997,6 +1025,25 @@
   
   .form-row {
     grid-template-columns: 1fr;
+  }
+  
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar.active {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 992px) {
+  .inventory-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   }
 }
 
@@ -1046,6 +1093,7 @@
     flex-wrap: nowrap;
     overflow-x: auto;
     padding-bottom: 10px;
+    -webkit-overflow-scrolling: touch;
   }
   
   .tab {
@@ -1059,4 +1107,168 @@
   .product-action-btn {
     width: 100%;
   }
+  
+  .modal-content {
+    margin: 10px;
+    max-height: calc(100vh - 20px);
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .status-options {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+/* Small Mobile Devices */
+@media (max-width: 480px) {
+  .inventory-app {
+    padding: 10px;
+  }
+  
+  .app-header {
+    padding: 12px 15px;
+  }
+  
+  .app-title {
+    font-size: 18px;
+  }
+  
+  .stat-card {
+    padding: 12px;
+  }
+  
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
+  .stat-number {
+    font-size: 16px;
+  }
+  
+  .product-header {
+    padding: 12px 15px;
+  }
+  
+  .product-body {
+    padding: 12px 15px;
+  }
+  
+  .product-footer {
+    padding: 12px 15px;
+  }
+  
+  .modal-header {
+    padding: 15px 20px;
+  }
+  
+  .modal-body {
+    padding: 15px 20px;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .cancel-btn, .submit-btn {
+    width: 100%;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .sidebar,
+  .actions-bar,
+  .tabs-container,
+  .product-footer,
+  .back-button,
+  .filter-btn,
+  .export-btn,
+  .add-btn,
+  .scan-btn,
+  .alert-action {
+    display: none !important;
+  }
+  
+  .inventory-app {
+    margin-left: 0;
+    width: 100%;
+    padding: 0;
+  }
+  
+  .product-card {
+    break-inside: avoid;
+    border: 1px solid #000;
+    box-shadow: none;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--green), var(--blue));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #4f8c26, #004494);
+}
+
+/* Animation Keyframes */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Apply animations */
+.product-card {
+  animation: slideIn 0.3s ease;
+}
+
+.modal-overlay {
+  animation: fadeIn 0.2s ease;
+}
+
+/* Focus Styles for Accessibility */
+:focus {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
 }

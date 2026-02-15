@@ -17,7 +17,8 @@ import {
   FiUser,
   FiCalendar,
   FiCamera,
-
+  FiImage,
+  FiLink
 } from "react-icons/fi";
 import { 
   MdInventory, 
@@ -38,8 +39,9 @@ function InventoryApp({ onBack }) {
   const [showScanModal, setShowScanModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [imagePreview, setImagePreview] = useState('');
 
-  // Sample inventory data
+  // Sample inventory data with image URLs
   const [products, setProducts] = useState([
     {
       id: 'PRD-001',
@@ -54,7 +56,7 @@ function InventoryApp({ onBack }) {
       foundBy: 'Ali Raza',
       foundDate: '2024-02-15',
       tags: ['laptop', 'dell', 'electronics'],
-      image: null,
+      imageUrl: 'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=150',
       barcode: '123456789012'
     },
     {
@@ -70,7 +72,7 @@ function InventoryApp({ onBack }) {
       foundBy: 'Sara Khan',
       foundDate: '2024-02-14',
       tags: ['iphone', 'apple', 'mobile'],
-      image: null,
+      imageUrl: 'https://images.unsplash.com/photo-1632661674596-618d0b64c641?w=150',
       barcode: '123456789013'
     },
     {
@@ -86,7 +88,7 @@ function InventoryApp({ onBack }) {
       foundBy: 'Ahmed Malik',
       foundDate: '2024-02-13',
       tags: ['mouse', 'logitech', 'wireless'],
-      image: null,
+      imageUrl: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=150',
       barcode: '123456789014'
     },
     {
@@ -102,7 +104,7 @@ function InventoryApp({ onBack }) {
       foundBy: 'Fatima Zaidi',
       foundDate: '2024-02-10',
       tags: ['hub', 'usb', 'adapter'],
-      image: null,
+      imageUrl: null,
       barcode: '123456789015'
     },
     {
@@ -118,7 +120,7 @@ function InventoryApp({ onBack }) {
       foundBy: 'Bilal Ahmed',
       foundDate: '2024-02-12',
       tags: ['harddrive', 'storage', 'seagate'],
-      image: null,
+      imageUrl: 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=150',
       barcode: '123456789016'
     },
     {
@@ -134,7 +136,7 @@ function InventoryApp({ onBack }) {
       foundBy: 'Zainab Ali',
       foundDate: '2024-02-11',
       tags: ['keyboard', 'mechanical', 'gaming'],
-      image: null,
+      imageUrl: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=150',
       barcode: '123456789017'
     },
     {
@@ -150,7 +152,7 @@ function InventoryApp({ onBack }) {
       foundBy: 'Ali Raza',
       foundDate: '2024-02-09',
       tags: ['monitor', 'display', 'dell'],
-      image: null,
+      imageUrl: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=150',
       barcode: '123456789018'
     },
     {
@@ -166,7 +168,7 @@ function InventoryApp({ onBack }) {
       foundBy: 'Sara Khan',
       foundDate: '2024-02-08',
       tags: ['webcam', 'camera', 'video'],
-      image: null,
+      imageUrl: null,
       barcode: '123456789019'
     }
   ]);
@@ -182,7 +184,8 @@ function InventoryApp({ onBack }) {
     location: '',
     tags: '',
     barcode: '',
-    foundBy: 'Admin'
+    foundBy: 'Admin',
+    imageUrl: ''  // Added imageUrl field
   });
 
   // Categories for filter
@@ -218,6 +221,16 @@ function InventoryApp({ onBack }) {
   // Get not found alerts
   const notFoundAlerts = products.filter(p => p.foundStatus === 'notfound');
 
+  // Validate image URL
+  const isValidUrl = (url) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const getStatusClass = (status) => {
     switch(status) {
       case 'found': return 'status-found';
@@ -238,7 +251,7 @@ function InventoryApp({ onBack }) {
     const product = {
       id: `PRD-${String(products.length + 1).padStart(3, '0')}`,
       ...newProduct,
-      tags: newProduct.tags.split(',').map(tag => tag.trim()),
+      tags: newProduct.tags ? newProduct.tags.split(',').map(tag => tag.trim()) : [],
       lastUpdated: new Date().toISOString().split('T')[0],
       foundDate: new Date().toISOString().split('T')[0],
       image: null
@@ -246,6 +259,7 @@ function InventoryApp({ onBack }) {
 
     setProducts([...products, product]);
     setShowAddModal(false);
+    setImagePreview('');
     setNewProduct({
       name: '',
       category: 'Electronics',
@@ -256,7 +270,8 @@ function InventoryApp({ onBack }) {
       location: '',
       tags: '',
       barcode: '',
-      foundBy: 'Admin'
+      foundBy: 'Admin',
+      imageUrl: ''
     });
   };
 
@@ -284,6 +299,17 @@ function InventoryApp({ onBack }) {
     // Simulate QR scan
     alert('Scanning QR Code...\n(Integration with QR scanner would go here)');
     setShowScanModal(false);
+  };
+
+  // Handle image URL change with preview
+  const handleImageUrlChange = (e) => {
+    const url = e.target.value;
+    setNewProduct({...newProduct, imageUrl: url});
+    if (url && isValidUrl(url)) {
+      setImagePreview(url);
+    } else {
+      setImagePreview('');
+    }
   };
 
   return (
@@ -487,7 +513,25 @@ function InventoryApp({ onBack }) {
             <div key={product.id} className={`product-card ${product.foundStatus}`}>
               <div className="product-header">
                 <div className="product-avatar">
-                  {product.name.charAt(0)}
+                  {product.imageUrl && isValidUrl(product.imageUrl) ? (
+                    <img 
+                      src={product.imageUrl} 
+                      alt={product.name}
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'cover',
+                        borderRadius: '12px'
+                      }}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = product.name.charAt(0);
+                      }}
+                    />
+                  ) : (
+                    product.name.charAt(0)
+                  )}
                 </div>
                 <div className="product-info">
                   <h3>{product.name}</h3>
@@ -632,6 +676,53 @@ function InventoryApp({ onBack }) {
               <button className="close-btn" onClick={() => setShowAddModal(false)}>×</button>
             </div>
             <div className="modal-body">
+              {/* Image URL Section - Added */}
+              <div className="form-group">
+                <label><FiImage /> Product Image URL</label>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    value={newProduct.imageUrl}
+                    onChange={handleImageUrlChange}
+                    style={{ flex: 1 }}
+                  />
+                  <FiLink color="var(--text-light)" />
+                </div>
+                {imagePreview && (
+                  <div style={{ 
+                    marginTop: '10px', 
+                    padding: '10px',
+                    background: 'var(--offwhite)',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}>
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      style={{ 
+                        width: '50px', 
+                        height: '50px', 
+                        objectFit: 'cover',
+                        borderRadius: '8px'
+                      }}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://via.placeholder.com/50?text=Invalid+URL';
+                      }}
+                    />
+                    <span style={{ color: 'var(--text-light)', fontSize: '12px' }}>
+                      Image Preview
+                    </span>
+                  </div>
+                )}
+                <p className="image-hint">
+                  Enter a valid image URL (JPG, PNG, GIF from any image hosting service)
+                </p>
+              </div>
+
               <div className="form-row">
                 <div className="form-group">
                   <label>Product Name</label>

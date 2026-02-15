@@ -12,7 +12,7 @@ function VolunteerApp() {
     availability: "",
     skills: "",
     city: "",
-    imageUrl: ""
+    imageUrl: "" // Sirf image URL store hoga
   });
 
   const [volunteers, setVolunteers] = useState([]);
@@ -21,6 +21,7 @@ function VolunteerApp() {
   const [filterEvent, setFilterEvent] = useState("");
   const [loading, setLoading] = useState(false);
   const [editId, setEditId] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
 
   const volunteersRef = collection(db, "volunteers");
 
@@ -31,6 +32,11 @@ function VolunteerApp() {
       ...prev,
       [name]: value
     }));
+
+    // Agar imageUrl field change ho rahi hai to preview bhi update karo
+    if (name === "imageUrl") {
+      setImagePreview(value);
+    }
   };
 
   // Fetch volunteers
@@ -79,7 +85,7 @@ function VolunteerApp() {
           availability: formData.availability,
           skills: formData.skills,
           city: formData.city,
-          imageUrl: formData.imageUrl,
+          imageUrl: formData.imageUrl, // Sirf URL save karo
           updatedOn: new Date().toLocaleDateString()
         });
         
@@ -95,11 +101,12 @@ function VolunteerApp() {
           availability: formData.availability,
           skills: formData.skills,
           city: formData.city,
-          imageUrl: formData.imageUrl,
+          imageUrl: formData.imageUrl, // Sirf URL save karo
           registeredOn: new Date().toLocaleDateString()
         };
         
         await addDoc(volunteersRef, newVolunteer);
+        
         alert("Volunteer Registered Successfully! JazakAllah Khair!");
       }
 
@@ -114,6 +121,7 @@ function VolunteerApp() {
         city: "",
         imageUrl: ""
       });
+      setImagePreview("");
 
       if (isAdmin) {
         fetchVolunteers();
@@ -130,6 +138,7 @@ function VolunteerApp() {
     if (window.confirm("Are you sure you want to delete this volunteer?")) {
       setLoading(true);
       try {
+        // Sirf document delete karo Firebase se
         await deleteDoc(doc(db, "volunteers", id));
         alert("Volunteer deleted successfully");
         fetchVolunteers();
@@ -153,6 +162,9 @@ function VolunteerApp() {
       city: volunteer.city || "",
       imageUrl: volunteer.imageUrl || ""
     });
+    if (volunteer.imageUrl) {
+      setImagePreview(volunteer.imageUrl);
+    }
     setEditId(volunteer.id);
     setIsAdmin(false);
   };
@@ -168,6 +180,7 @@ function VolunteerApp() {
       city: "",
       imageUrl: ""
     });
+    setImagePreview("");
     setEditId(null);
   };
 
@@ -184,6 +197,16 @@ function VolunteerApp() {
 
   // Get unique events
   const uniqueEvents = [...new Set(volunteers.map(v => v.event).filter(Boolean))];
+
+  // Validate image URL
+  const isValidUrl = (url) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
   return (
     <div className="volunteer-wrapper">
@@ -223,17 +246,71 @@ function VolunteerApp() {
               )}
             </div>
 
-            {/* Image URL Field */}
-            <div className="form-group">
-              <label>Image URL</label>
-              <input
-                type="url"
-                name="imageUrl"
-                placeholder="https://example.com/image.jpg"
-                value={formData.imageUrl}
-                onChange={handleInputChange}
-              />
-              <small className="hint">Enter a direct link to an image (optional)</small>
+            {/* Image URL Section - Modified for URL input only */}
+            <div className="image-upload-section">
+              <div className="image-preview-container">
+                {imagePreview && isValidUrl(imagePreview) ? (
+                  <img 
+                    src={imagePreview} 
+                    alt="Preview" 
+                    className="image-preview"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://via.placeholder.com/120?text=Invalid+URL';
+                    }}
+                  />
+                ) : (
+                  <div className="image-placeholder">
+                    <span>🖼️</span>
+                    <p>No Image URL</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="image-upload-controls">
+                <div className="url-input-container">
+                  <label htmlFor="image-url" className="image-upload-label">
+                    Enter Image URL
+                  </label>
+                  <input
+                    id="image-url"
+                    type="url"
+                    name="imageUrl"
+                    placeholder="https://example.com/image.jpg"
+                    value={formData.imageUrl}
+                    onChange={handleInputChange}
+                    className="image-url-input"
+                  />
+                </div>
+                {imagePreview && (
+                  <button 
+                    type="button" 
+                    className="remove-image-btn"
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, imageUrl: "" }));
+                      setImagePreview("");
+                    }}
+                  >
+                    Clear URL
+                  </button>
+                )}
+                <p className="image-hint">
+                  Enter a valid image URL (JPG, PNG, GIF from any image hosting service)
+                </p>
+                <p className="image-examples">
+                  Examples: 
+                  <a href="#" onClick={(e) => {
+                    e.preventDefault();
+                    setFormData(prev => ({ ...prev, imageUrl: "https://randomuser.me/api/portraits/men/1.jpg" }));
+                    setImagePreview("https://randomuser.me/api/portraits/men/1.jpg");
+                  }}>Male</a>, 
+                  <a href="#" onClick={(e) => {
+                    e.preventDefault();
+                    setFormData(prev => ({ ...prev, imageUrl: "https://randomuser.me/api/portraits/women/1.jpg" }));
+                    setImagePreview("https://randomuser.me/api/portraits/women/1.jpg");
+                  }}>Female</a>
+                </p>
+              </div>
             </div>
 
             <div className="form-row">
@@ -338,11 +415,11 @@ function VolunteerApp() {
             <div className="admin-header">
               <h3>Volunteer Management</h3>
               <div className="admin-actions">
-                <button onClick={fetchVolunteers} className="refresh-btn">
+                <button onClick={fetchVolunteers} className="refresh-btn" title="Refresh">
                   🔄
                 </button>
                 {volunteers.length > 0 && (
-                  <button className="export-btn">
+                  <button className="export-btn" title="Export to CSV">
                     📥 Export
                   </button>
                 )}
@@ -352,7 +429,7 @@ function VolunteerApp() {
             {/* Filters */}
             <div className="filters-section">
               <div className="search-box">
-                🔍
+                <span>🔍</span>
                 <input
                   type="text"
                   placeholder="Search by name, email or phone..."
@@ -381,7 +458,12 @@ function VolunteerApp() {
             ) : filteredVolunteers.length === 0 ? (
               <div className="no-data">
                 {volunteers.length === 0 ? (
-                  <p>No volunteers registered yet.</p>
+                  <>
+                    <p>No volunteers registered yet.</p>
+                    <button onClick={() => setIsAdmin(false)} className="add-first-btn">
+                      Register First Volunteer
+                    </button>
+                  </>
                 ) : (
                   <p>No volunteers match your search.</p>
                 )}
@@ -419,18 +501,18 @@ function VolunteerApp() {
                               />
                             ) : (
                               <div className="volunteer-thumbnail-placeholder">
-                                {vol.name?.charAt(0)}
+                                {vol.name?.charAt(0).toUpperCase()}
                               </div>
                             )}
                           </div>
                         </td>
-                        <td>{vol.name}</td>
+                        <td><strong>{vol.name}</strong></td>
                         <td>{vol.email}</td>
                         <td>{vol.phone}</td>
-                        <td>{vol.event}</td>
+                        <td><span className="event-badge">{vol.event}</span></td>
                         <td>{vol.availability}</td>
-                        <td>{vol.skills || "-"}</td>
-                        <td>{vol.city || "-"}</td>
+                        <td>{vol.skills || "—"}</td>
+                        <td>{vol.city || "—"}</td>
                         <td>
                           <div className="action-cell">
                             <button onClick={() => handleEdit(vol)} className="icon-btn edit" title="Edit">

@@ -26,23 +26,31 @@ import {
   FiSun,
   FiLock,
   FiMail,
-  FiPhone
+  FiPhone,
+  FiX,
+  FiCheck,
+  FiTrash2,
+  FiBellOff
 } from "react-icons/fi";
 import { 
   MdVolunteerActivism, 
   MdReceipt, 
   MdInventory,
   MdWarning,
-  MdCheckCircle 
+  MdCheckCircle,
+  MdNotificationsActive,
+  MdNotificationsNone,
+  MdNotificationsPaused,
+  MdDoneAll
 } from "react-icons/md";
 import "./Dashboard.css";
 
 function Dashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeApp, setActiveApp] = useState('overview');
-  const [notifications, setNotifications] = useState(8);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [profile, setProfile] = useState({
     name: "Admin User",
@@ -50,6 +58,91 @@ function Dashboard() {
     phone: "+92 300 1234567",
     role: "Super Admin",
     avatar: "A"
+  });
+
+  // Notifications State
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      type: 'volunteer',
+      title: 'New Volunteer Registration',
+      message: 'Ali Raza registered as a new volunteer',
+      time: '2 minutes ago',
+      read: false,
+      icon: <MdVolunteerActivism />,
+      color: '#66B032',
+      action: 'view',
+      actionLink: 'volunteer'
+    },
+    {
+      id: 2,
+      type: 'billing',
+      title: 'Payment Received',
+      message: 'Payment of ₨ 5,000 received from Sara Khan',
+      time: '15 minutes ago',
+      read: false,
+      icon: <MdReceipt />,
+      color: '#0057A8',
+      action: 'view',
+      actionLink: 'billing'
+    },
+    {
+      id: 3,
+      type: 'inventory',
+      title: 'Low Stock Alert',
+      message: 'Dell XPS Laptops are running low (only 2 left)',
+      time: '25 minutes ago',
+      read: false,
+      icon: <MdInventory />,
+      color: '#FF6B35',
+      action: 'view',
+      actionLink: 'inventory'
+    },
+    {
+      id: 4,
+      type: 'volunteer',
+      title: 'Volunteer Completed Training',
+      message: 'Fatima Zaidi completed the volunteer training program',
+      time: '45 minutes ago',
+      read: true,
+      icon: <MdVolunteerActivism />,
+      color: '#66B032',
+      action: 'view',
+      actionLink: 'volunteer'
+    },
+    {
+      id: 5,
+      type: 'billing',
+      title: 'New Invoice Created',
+      message: 'Invoice #INV-2024-001 created for ₨ 15,000',
+      time: '1 hour ago',
+      read: true,
+      icon: <MdReceipt />,
+      color: '#0057A8',
+      action: 'view',
+      actionLink: 'billing'
+    },
+    {
+      id: 6,
+      type: 'inventory',
+      title: 'New Stock Arrived',
+      message: '50 new items added to inventory',
+      time: '2 hours ago',
+      read: true,
+      icon: <MdInventory />,
+      color: '#FF6B35',
+      action: 'view',
+      actionLink: 'inventory'
+    }
+  ]);
+
+  const [notificationSettings, setNotificationSettings] = useState({
+    sound: true,
+    desktop: true,
+    email: true,
+    volunteer: true,
+    billing: true,
+    inventory: true
   });
 
   const [stats, setStats] = useState({
@@ -75,6 +168,9 @@ function Dashboard() {
       trend: '-3%'
     }
   });
+
+  // Calculate unread notifications count
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   // Real-time updates simulation
   useEffect(() => {
@@ -113,6 +209,104 @@ function Dashboard() {
     }
   }, []);
 
+  // Load saved notification settings
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('notificationSettings');
+    if (savedSettings) {
+      setNotificationSettings(JSON.parse(savedSettings));
+    }
+  }, []);
+
+  // Save notification settings
+  useEffect(() => {
+    localStorage.setItem('notificationSettings', JSON.stringify(notificationSettings));
+  }, [notificationSettings]);
+
+  // Request notification permission
+  useEffect(() => {
+    if (notificationSettings.desktop && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, [notificationSettings.desktop]);
+
+  // Play notification sound
+  const playNotificationSound = () => {
+    if (!notificationSettings.sound) return;
+    const audio = new Audio('/notification-sound.mp3');
+    audio.play().catch(e => console.log('Sound play failed:', e));
+  };
+
+  // Mark notification as read
+  const markAsRead = (id) => {
+    setNotifications(prev => 
+      prev.map(notif => 
+        notif.id === id ? { ...notif, read: true } : notif
+      )
+    );
+  };
+
+  // Mark all notifications as read
+  const markAllAsRead = () => {
+    setNotifications(prev => 
+      prev.map(notif => ({ ...notif, read: true }))
+    );
+  };
+
+  // Delete notification
+  const deleteNotification = (id) => {
+    setNotifications(prev => prev.filter(notif => notif.id !== id));
+  };
+
+  // Clear all notifications
+  const clearAllNotifications = () => {
+    if (window.confirm('Are you sure you want to clear all notifications?')) {
+      setNotifications([]);
+    }
+  };
+
+  // Handle notification click
+  const handleNotificationClick = (notification) => {
+    markAsRead(notification.id);
+    
+    if (notification.action === 'view' && notification.actionLink) {
+      setActiveApp(notification.actionLink);
+      setShowNotifications(false);
+    }
+  };
+
+  // Add new notification
+  const addNotification = (type, title, message, actionLink) => {
+    if (!notificationSettings[type]) return;
+
+    const newNotification = {
+      id: Date.now(),
+      type,
+      title,
+      message,
+      time: 'Just now',
+      read: false,
+      icon: type === 'volunteer' ? <MdVolunteerActivism /> : 
+            type === 'billing' ? <MdReceipt /> : 
+            <MdInventory />,
+      color: type === 'volunteer' ? '#66B032' : 
+             type === 'billing' ? '#0057A8' : 
+             '#FF6B35',
+      action: 'view',
+      actionLink
+    };
+
+    setNotifications(prev => [newNotification, ...prev]);
+    playNotificationSound();
+
+    // Show desktop notification if enabled
+    if (notificationSettings.desktop && Notification.permission === 'granted') {
+      new Notification(title, {
+        body: message,
+        icon: '/favicon.ico'
+      });
+    }
+  };
+
   // Toggle dark mode
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
@@ -128,12 +322,9 @@ function Dashboard() {
   // Handle logout
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to logout?")) {
-      // Clear user session
       localStorage.removeItem('user');
       localStorage.removeItem('token');
       sessionStorage.clear();
-      
-      // Redirect to login page
       window.location.href = '/login';
     }
   };
@@ -294,12 +485,139 @@ function Dashboard() {
                 >
                   <FiSettings size={20} />
                 </button>
-                <div className="notification-bell">
-                  <FiBell size={22} />
-                  {notifications > 0 && (
-                    <span className="notification-badge">{notifications}</span>
+                
+                {/* Enhanced Notification Bell */}
+                <div className="notification-container">
+                  <button 
+                    className="notification-bell"
+                    onClick={() => setShowNotifications(!showNotifications)}
+                    title="Notifications"
+                  >
+                    <FiBell size={22} />
+                    {unreadCount > 0 && (
+                      <span className="notification-badge">{unreadCount}</span>
+                    )}
+                  </button>
+
+                  {/* Notifications Dropdown */}
+                  {showNotifications && (
+                    <div className="notifications-dropdown">
+                      <div className="notifications-header">
+                        <h3>
+                          <MdNotificationsActive /> Notifications
+                          {unreadCount > 0 && (
+                            <span className="unread-count">{unreadCount} new</span>
+                          )}
+                        </h3>
+                        <div className="notifications-actions">
+                          {notifications.length > 0 && (
+                            <>
+                              <button 
+                                onClick={markAllAsRead}
+                                className="notifications-action-btn"
+                                title="Mark all as read"
+                                disabled={unreadCount === 0}
+                              >
+                                <MdDoneAll />
+                              </button>
+                              <button 
+                                onClick={clearAllNotifications}
+                                className="notifications-action-btn"
+                                title="Clear all"
+                              >
+                                <FiTrash2 />
+                              </button>
+                            </>
+                          )}
+                          <button 
+                            className="notifications-action-btn close"
+                            onClick={() => setShowNotifications(false)}
+                            title="Close"
+                          >
+                            <FiX />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="notifications-list">
+                        {notifications.length === 0 ? (
+                          <div className="no-notifications">
+                            <MdNotificationsNone size={40} />
+                            <p>No notifications</p>
+                            <span>You're all caught up!</span>
+                          </div>
+                        ) : (
+                          <>
+                            {notifications.map(notification => (
+                              <div 
+                                key={notification.id} 
+                                className={`notification-item ${!notification.read ? 'unread' : ''}`}
+                                onClick={() => handleNotificationClick(notification)}
+                              >
+                                <div 
+                                  className="notification-icon"
+                                  style={{ background: `${notification.color}20`, color: notification.color }}
+                                >
+                                  {notification.icon}
+                                </div>
+                                <div className="notification-content">
+                                  <div className="notification-title">
+                                    {notification.title}
+                                    {!notification.read && (
+                                      <span className="unread-dot"></span>
+                                    )}
+                                  </div>
+                                  <div className="notification-message">
+                                    {notification.message}
+                                  </div>
+                                  <div className="notification-time">
+                                    <FiClock size={10} /> {notification.time}
+                                  </div>
+                                </div>
+                                <div className="notification-actions">
+                                  {!notification.read && (
+                                    <button 
+                                      className="notification-mark-read"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        markAsRead(notification.id);
+                                      }}
+                                      title="Mark as read"
+                                    >
+                                      <FiCheck />
+                                    </button>
+                                  )}
+                                  <button 
+                                    className="notification-delete"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteNotification(notification.id);
+                                    }}
+                                    title="Delete"
+                                  >
+                                    <FiX />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                      </div>
+
+                      {notifications.length > 0 && (
+                        <div className="notifications-footer">
+                          <button 
+                            className="view-all-btn"
+                            onClick={() => setShowNotifications(false)}
+                          >
+                            Close
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
+
                 <div className="profile-menu" onClick={() => setShowProfileMenu(!showProfileMenu)}>
                   <div className="profile-avatar">{profile.avatar}</div>
                   <div className="profile-info">
@@ -615,6 +933,54 @@ function Dashboard() {
                 </form>
               </div>
 
+              {/* Notification Settings */}
+              <div className="settings-section">
+                <h3>Notification Settings</h3>
+                <div className="settings-form">
+                  <div className="preference-item">
+                    <span><FiBell /> Sound Notifications</span>
+                    <label className="switch">
+                      <input 
+                        type="checkbox" 
+                        checked={notificationSettings.sound}
+                        onChange={(e) => setNotificationSettings(prev => ({
+                          ...prev, sound: e.target.checked
+                        }))}
+                      />
+                      <span className="slider round"></span>
+                    </label>
+                  </div>
+                  
+                  <div className="preference-item">
+                    <span><FiBell /> Desktop Notifications</span>
+                    <label className="switch">
+                      <input 
+                        type="checkbox" 
+                        checked={notificationSettings.desktop}
+                        onChange={(e) => setNotificationSettings(prev => ({
+                          ...prev, desktop: e.target.checked
+                        }))}
+                      />
+                      <span className="slider round"></span>
+                    </label>
+                  </div>
+                  
+                  <div className="preference-item">
+                    <span><FiMail /> Email Notifications</span>
+                    <label className="switch">
+                      <input 
+                        type="checkbox" 
+                        checked={notificationSettings.email}
+                        onChange={(e) => setNotificationSettings(prev => ({
+                          ...prev, email: e.target.checked
+                        }))}
+                      />
+                      <span className="slider round"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               {/* Change Password */}
               <div className="settings-section">
                 <h3>Change Password</h3>
@@ -661,13 +1027,6 @@ function Dashboard() {
                       checked={darkMode}
                       onChange={toggleDarkMode}
                     />
-                    <span className="slider round"></span>
-                  </label>
-                </div>
-                <div className="preference-item">
-                  <span>Notifications</span>
-                  <label className="switch">
-                    <input type="checkbox" defaultChecked />
                     <span className="slider round"></span>
                   </label>
                 </div>
