@@ -7,7 +7,8 @@ import {
   FiSettings,
   FiLogOut,
   FiChevronLeft,
-  FiChevronRight
+  FiChevronRight,
+  FiMenu  // Hamburger icon
 } from "react-icons/fi";
 import { 
   MdVolunteerActivism, 
@@ -16,7 +17,7 @@ import {
 } from "react-icons/md";
 import "./Sidebar.css";
 
-function Sidebar({ activeApp, setActiveApp }) {
+function Sidebar({ activeApp, setActiveApp, onSettingsClick, onLogout }) {
   const [collapsed, setCollapsed] = useState(false);
 
   const menuItems = [
@@ -25,6 +26,8 @@ function Sidebar({ activeApp, setActiveApp }) {
     { id: 'billing', icon: <MdReceipt />, label: 'Billing', app: 'billing', color: '#0057A8' },
     { id: 'inventory', icon: <MdInventory />, label: 'Inventory', app: 'inventory', color: '#FF6B35' },
   ];
+
+  const toggleSidebar = () => setCollapsed(!collapsed);
 
   return (
     <div className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
@@ -39,10 +42,8 @@ function Sidebar({ activeApp, setActiveApp }) {
             <div className="logo-icon">S</div>
           )}
         </div>
-        <button 
-          className="collapse-btn"
-          onClick={() => setCollapsed(!collapsed)}
-        >
+        {/* Hamburger / Collapse button */}
+        <button className="collapse-btn" onClick={toggleSidebar}>
           {collapsed ? <FiChevronRight /> : <FiChevronLeft />}
         </button>
       </div>
@@ -57,24 +58,19 @@ function Sidebar({ activeApp, setActiveApp }) {
             <span className="nav-icon" style={{ color: item.color }}>
               {item.icon}
             </span>
-            {!collapsed && (
-              <>
-                <span className="nav-label">{item.label}</span>
-                {item.badge && (
-                  <span className="nav-badge">{item.badge}</span>
-                )}
-              </>
-            )}
+            {!collapsed && <span className="nav-label">{item.label}</span>}
           </button>
         ))}
       </nav>
 
       <div className="sidebar-footer">
-        <button className="nav-item settings">
+        {/* Settings Button with functionality */}
+        <button className="nav-item settings" onClick={onSettingsClick}>
           <FiSettings />
           {!collapsed && <span>Settings</span>}
         </button>
-        <button className="nav-item logout">
+        {/* Logout Button with functionality */}
+        <button className="nav-item logout" onClick={onLogout}>
           <FiLogOut />
           {!collapsed && <span>Logout</span>}
         </button>

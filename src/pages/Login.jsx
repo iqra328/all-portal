@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, GithubAuthProvider } from "firebase/auth";
 import { auth } from "../firebase";
 import { useNavigate, Link } from "react-router-dom";
@@ -26,6 +26,7 @@ function Login() {
   const [errors, setErrors] = useState({});
   
   const navigate = useNavigate();
+  const hasNavigated = useRef(false); // ✅ Prevent multiple navigations
 
   // Initialize providers
   const googleProvider = new GoogleAuthProvider();
@@ -39,12 +40,13 @@ function Login() {
       setRememberMe(true);
     }
 
-    // Check if user is already logged in
+    // ✅ Check if user is already logged in AND we haven't navigated yet
     const user = localStorage.getItem('user');
-    if (user) {
-      navigate("/dashboard");
+    if (user && !hasNavigated.current) {
+      hasNavigated.current = true;
+      navigate("/dashboard", { replace: true });
     }
-  }, [navigate]);
+  }, [navigate]); // No extra dependencies that cause re-runs
 
   const validateForm = () => {
     const newErrors = {};
@@ -108,7 +110,8 @@ function Login() {
         displayName: userCredential.user.displayName || formData.email.split('@')[0]
       }));
       
-      navigate("/dashboard");
+      // ✅ Use replace to prevent history stacking
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       let errorMessage = "Invalid email or password";
       
@@ -133,18 +136,14 @@ function Login() {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      // Add additional scopes if needed
       googleProvider.addScope('profile');
       googleProvider.addScope('email');
-      
-      // Set custom parameters
       googleProvider.setCustomParameters({
         prompt: 'select_account'
       });
 
       const result = await signInWithPopup(auth, googleProvider);
       
-      // Save user info
       localStorage.setItem('user', JSON.stringify({
         uid: result.user.uid,
         email: result.user.email,
@@ -152,12 +151,11 @@ function Login() {
         photoURL: result.user.photoURL
       }));
 
-      // Handle remember me
       if (rememberMe) {
         localStorage.setItem('rememberedEmail', result.user.email);
       }
 
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       console.error("Google login error:", error);
       
@@ -187,7 +185,6 @@ function Login() {
       // Handle Github login
       const credential = GithubAuthProvider.credentialFromResult(result);
       
-      // Save user info
       localStorage.setItem('user', JSON.stringify({
         uid: result.user.uid,
         email: result.user.email,
@@ -195,7 +192,7 @@ function Login() {
         photoURL: result.user.photoURL
       }));
 
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       console.error("Github login error:", error);
       
@@ -216,7 +213,11 @@ function Login() {
   };
 
   const handleForgotPassword = () => {
-    navigate("/forgot-password");
+    // ✅ Check if route exists, otherwise show a message
+    // If you have a /forgot-password route, keep navigate, else alert.
+    // For now, alert user and optionally navigate to a placeholder.
+    alert("Password reset feature coming soon. Please contact support.");
+    // navigate("/forgot-password", { replace: true }); // uncomment if route exists
   };
 
   return (
@@ -237,7 +238,6 @@ function Login() {
           <div className="form-group">
             <label className="form-label">Email Address</label>
             <div className="input-wrapper">
-              {/* <FiMail className="input-icon" /> */}
               <input
                 type="email"
                 name="email"
@@ -259,7 +259,6 @@ function Login() {
           <div className="form-group">
             <label className="form-label">Password</label>
             <div className="input-wrapper">
-              {/* <FiLock className="input-icon" /> */}
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"

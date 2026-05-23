@@ -1,0 +1,55 @@
+/* GLOBAL RESET – NO HIDDEN CONTENT */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;  /* allow content to show */
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+}
+html, body, #root {
+  overflow-x: hidden;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #f1f5f9;
+  font-family: system-ui, sans-serif;
+}
+
+/* Remove any hidden overflow from all containers */
+div, section, main, header, footer, aside {
+  overflow: visible !important;
+}
+
+/* Force any fixed/sticky to not cut off */
+.fixed, .sticky {
+  position: relative !important;
+  top: auto !important;
+}
+
+/* FORCE FIX – Remove all hidden from Dashboard parent */
+.dashboard-container,
+.dashboard-main,
+.main-content,
+[class*="dashboard"] {
+  overflow: visible !important;
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  clip-path: none !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
